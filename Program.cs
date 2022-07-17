@@ -7,8 +7,8 @@ var settings = new NativeWindowSettings()
     Title = "Cross graphics .NET",
     API = ContextAPI.OpenGL,
     APIVersion = new Version(4, 6),
-    IsEventDriven = true,
+    IsEventDriven = false,
 };
 
-Application.CreateWindow(settings);
+Application.CreateWindow<AppContent>(settings);
 Application.Run();

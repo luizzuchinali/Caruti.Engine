@@ -1,4 +1,4 @@
-namespace GraphicsLibrary;
+namespace GraphicsLibrary.Base;
 
 [Obsolete("Obsolete")]
 public class ApplicationWindow : GameWindow
@@ -8,7 +8,10 @@ public class ApplicationWindow : GameWindow
     private GRContext _context;
     public SizeF CurrentSize { get; private set; }
 
-    public unsafe ApplicationWindow(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) :
+    public MainContent MainContent { get; }
+
+    public unsafe ApplicationWindow(MainContent mainContent, GameWindowSettings gameWindowSettings,
+        NativeWindowSettings nativeWindowSettings) :
         base(
             gameWindowSettings, nativeWindowSettings)
     {
@@ -20,18 +23,8 @@ public class ApplicationWindow : GameWindow
         var glInterface =
             GRGlInterface.AssembleGlInterface(GLFW.GetWGLContext(WindowPtr), (_, name) => GLFW.GetProcAddress(name));
         _context = GRContext.CreateGl(glInterface);
+        MainContent = mainContent;
         CreateCanvas();
-
-        Button = new Button
-        {
-            Text = "Click Here :)",
-            Position = new Vector2(CurrentSize.Width / 2, CurrentSize.Height / 2),
-            Size = new Vector2(140, 40),
-            Radius = 20,
-            BackgroundColor = Color.FromRgb(183, 193, 201),
-            MouseOverColor = Colors.Red,
-            TextColor = Color.FromRgb(14, 15, 15)
-        };
     }
 
     private void CreateCanvas()
@@ -47,29 +40,23 @@ public class ApplicationWindow : GameWindow
         _canvas = new SkiaCanvas { Canvas = _surface.Canvas };
     }
 
-    public Button Button { get; set; }
-
     protected override void OnResize(ResizeEventArgs e)
     {
         CurrentSize = new SizeF(e.Width, e.Height);
+        MainContent.Resize?.Invoke(CurrentSize);
         CreateCanvas();
     }
 
     protected override void OnRenderFrame(FrameEventArgs args)
     {
-        _canvas.FillColor = Color.FromRgb(18, 80, 135);
-        _canvas.FillRectangle(0, 0, CurrentSize.Width, CurrentSize.Height);
-
-
-        Button.Render(_canvas, args);
-
+        MainContent.Render(_canvas, args);
         _canvas.Canvas.Flush();
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
     {
         SwapBuffers();
-        Button.Update(_canvas, args);
+        MainContent.Update(_canvas, args);
     }
 
     protected override void Dispose(bool disposing)
