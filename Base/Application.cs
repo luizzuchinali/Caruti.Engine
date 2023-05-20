@@ -1,17 +1,19 @@
-﻿namespace GraphicsLibrary.Base;
+﻿namespace Caruti.Engine.Base;
 
 public static class Application
 {
-    public static ApplicationWindow Window { get; private set; }
+    public static ApplicationWindow? Window { get; private set; }
 
-    public static void CreateWindow<T>(NativeWindowSettings settings) where T : MainContent, new()
+    public static void CreateWindow(NativeWindowSettings settings)
     {
-        Window = new ApplicationWindow(new T
-        {
-            Anchor = AnchorPosition.TopLeft,
-            Size = new SizeF(settings.Size.X, settings.Size.Y)
-        }, GameWindowSettings.Default, settings);
+        Window = new ApplicationWindow(GameWindowSettings.Default, settings);
     }
 
-    public static void Run() => Window.Run();
+    public static void Run()
+    {
+        if (Window is null)
+            throw new NullReferenceException("Window isn't created");
+
+        Window?.Run();
+    }
 }

@@ -8,7 +8,9 @@ var settings = new NativeWindowSettings()
     API = ContextAPI.OpenGL,
     APIVersion = new Version(4, 6),
     IsEventDriven = false,
+    Location = new Vector2i(1550, 300),
+    Vsync = VSyncMode.On,
 };
 
-Application.CreateWindow<AppContent>(settings);
+Application.CreateWindow(settings);
 Application.Run();

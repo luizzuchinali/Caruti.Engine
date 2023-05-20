@@ -1,4 +1,4 @@
-﻿namespace GraphicsLibrary.Base;
+﻿namespace Caruti.Engine.Base;
 
 public enum AnchorPosition
 {

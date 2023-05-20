@@ -1,16 +1,33 @@
-namespace GraphicsLibrary.Base;
+namespace Caruti.Engine.Base;
 
-[Obsolete("Obsolete")]
 public class ApplicationWindow : GameWindow
 {
     private SKSurface _surface;
     private SkiaCanvas _canvas;
-    private GRContext _context;
+    private readonly GRContext _context;
     public SizeF CurrentSize { get; private set; }
 
-    public MainContent MainContent { get; }
+    private Entity[] _entities;
 
-    public unsafe ApplicationWindow(MainContent mainContent, GameWindowSettings gameWindowSettings,
+    protected override void OnLoad()
+    {
+        var baseType = typeof(Entity);
+        _entities = baseType.Assembly.GetTypes()
+            .Where(type =>
+                type is { IsClass: true, IsAbstract: false } &&
+                type.IsSubclassOf(baseType) &&
+                !type.GetInterfaces().Contains(typeof(Ignore)))
+            .Select(Activator.CreateInstance)
+            .Where(x => x != null)
+            .OfType<Entity>()
+            .ToArray();
+
+        Parallel.ForEach(_entities, x => x.Setup());
+
+        base.OnLoad();
+    }
+
+    public unsafe ApplicationWindow(GameWindowSettings gameWindowSettings,
         NativeWindowSettings nativeWindowSettings) :
         base(
             gameWindowSettings, nativeWindowSettings)
@@ -23,7 +40,6 @@ public class ApplicationWindow : GameWindow
         var glInterface =
             GRGlInterface.AssembleGlInterface(GLFW.GetWGLContext(WindowPtr), (_, name) => GLFW.GetProcAddress(name));
         _context = GRContext.CreateGl(glInterface);
-        MainContent = mainContent;
         CreateCanvas();
     }
 
@@ -43,20 +59,23 @@ public class ApplicationWindow : GameWindow
     protected override void OnResize(ResizeEventArgs e)
     {
         CurrentSize = new SizeF(e.Width, e.Height);
-        MainContent.Resize?.Invoke(CurrentSize);
         CreateCanvas();
-    }
-
-    protected override void OnRenderFrame(FrameEventArgs args)
-    {
-        MainContent.Render(_canvas, args);
-        _canvas.Canvas.Flush();
     }
 
     protected override void OnUpdateFrame(FrameEventArgs args)
     {
+        Parallel.ForEach(_entities, x => x.Update(args));
+    }
+
+    protected override void OnRenderFrame(FrameEventArgs args)
+    {
         SwapBuffers();
-        MainContent.Update(_canvas, args);
+        _canvas.Canvas.Clear();
+
+        foreach (var entity in _entities)
+            entity.Render(_canvas, args);
+
+        _canvas.Canvas.Flush();
     }
 
     protected override void Dispose(bool disposing)

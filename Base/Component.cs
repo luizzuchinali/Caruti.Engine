@@ -1,4 +1,4 @@
-﻿namespace GraphicsLibrary.Base;
+﻿namespace Caruti.Engine.Base;
 
 public abstract class Component : IComponent
 {
@@ -13,9 +13,9 @@ public abstract class Component : IComponent
     }
 
     public SizeF Size { get; set; }
-    public Color BackgroundColor { get; set; }
+    public Color BackgroundColor { get; set; } = Colors.Black;
 
-    public Action<SizeF> Resize { get; protected set; }
+    public Action<SizeF>? Resize { get; protected set; }
 
     public IList<IComponent> Children { get; set; } = new List<IComponent>();
 
@@ -33,7 +33,7 @@ public abstract class Component : IComponent
 
     protected bool MouseOver()
     {
-        var mousePosition = Application.Window.MousePosition;
+        var mousePosition = Application.Window!.MousePosition;
         return mousePosition.X >= Position.X && mousePosition.X - Position.X <= Size.Width &&
                mousePosition.Y >= Position.Y && mousePosition.Y - Position.Y <= Size.Height;
     }
